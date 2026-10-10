@@ -40,8 +40,14 @@ def blog_post_delete(request, pk):
     post = get_object_or_404(Blog, pk=pk)
     if request.method == 'POST':
         post.delete()
-        return redirect('blog_list_all')
-    return render(request, 'blog/blog_confirm_delete.html', {'post': post})
+        return redirect('Blog_Post_List')
+    context = {
+        'heading': 'Delete Blog Post',
+        'object': post,
+        'preview': post.content,
+        'cancel_url': 'Blog_Post_List',
+    }
+    return render(request, 'blog/blog_confirm_delete.html', context)
 
 
 

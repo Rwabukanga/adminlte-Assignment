@@ -1,4 +1,61 @@
-<!doctype html>
+{% extends 'base.html' %}
+
+{% block title %}{{ heading }}{% endblock %}
+{% block page_title %}{{ heading }}{% endblock %}
+{% block breadcrumb %}Delete{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card card-danger card-outline">
+      <div class="card-body text-center p-4">
+
+        <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center mb-3"
+             style="width: 80px; height: 80px; font-size: 2.25rem" aria-hidden="true">
+          <i class="bi bi-trash3"></i>
+        </div>
+        <h2 class="h4 mb-2">{{ heading }}?</h2>
+        <p class="text-secondary mb-4">You are about to permanently delete:</p>
+
+        <!-- What will be deleted -->
+        <div class="border rounded p-3 bg-body-tertiary mb-3{% if preview %} text-start{% endif %}">
+          <div class="fs-5 fw-semibold">{{ object }}</div>
+          <div class="small text-secondary">#{{ object.pk }}</div>
+          {% if preview %}<div class="small mt-2">{{ preview|truncatewords:30 }}</div>{% endif %}
+        </div>
+
+        {% if employee_count %}
+        <div class="alert alert-danger d-flex align-items-center text-start small mb-3" role="alert">
+          <i class="bi bi-people-fill me-2 fs-5" aria-hidden="true"></i>
+          <div>This will also delete the <strong>{{ employee_count }} employee{{ employee_count|pluralize }}</strong> in this department.</div>
+        </div>
+        {% endif %}
+
+        <div class="alert alert-warning d-flex align-items-center text-start small mb-4" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2 fs-5" aria-hidden="true"></i>
+          <div>This cannot be undone.</div>
+        </div>
+
+        <form method="post" class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+          {% csrf_token %}
+          <a href="{% url cancel_url %}" class="btn btn-outline-secondary px-4">
+            <i class="bi bi-x-lg me-1" aria-hidden="true"></i> Cancel
+          </a>
+          <button type="submit" class="btn btn-danger px-4">
+            <i class="bi bi-trash3 me-1" aria-hidden="true"></i> Yes, delete
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+
+
+{% comment %} <!doctype html>
 <html lang="en">
   <head>
     <title>Delete Blog Post</title>
@@ -15,3 +72,4 @@
     </form>
   </body>
 </html>
+ {% endcomment %}
