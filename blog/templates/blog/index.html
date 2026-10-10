@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Row 1: four "small boxes" (copied from AdminLTE's index.html, numbers from the database) -->
+<div class="row">
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-primary">
+      <div class="inner">
+        <h3>{{ post_count }}</h3>
+        <p>Blog Posts</p>
+      </div>
+      <i class="small-box-icon bi bi-journal-text"></i>
+      <a href="{% url 'Blog_Post_List' %}" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
+        View posts <i class="bi bi-arrow-right-circle"></i>
+      </a>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-success">
+      <div class="inner">
+        <h3>{{ department_count }}</h3>
+        <p>Departments</p>
+      </div>
+      <i class="small-box-icon bi bi-building"></i>
+      <a href="{% url 'Department_List' %}" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
+        View departments <i class="bi bi-arrow-right-circle"></i>
+      </a>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-warning">
+      <div class="inner">
+        <h3>{{ employee_count }}</h3>
+        <p>Employees</p>
+      </div>
+      <i class="small-box-icon bi bi-people"></i>
+      <a href="{% url 'Employee_List' %}" class="small-box-footer link-dark link-underline-opacity-0 link-underline-opacity-50-hover">
+        View employees <i class="bi bi-arrow-right-circle"></i>
+      </a>
+    </div>
+  </div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box text-bg-danger">
+      <div class="inner">
+        <h3>{{ posts_this_month }}</h3>
+        <p>Posts this month</p>
+      </div>
+      <i class="small-box-icon bi bi-calendar-check"></i>
+      <a href="{% url 'Blog_Post_Create' %}" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
+        Write a post <i class="bi bi-arrow-right-circle"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Row 2: chart + latest employees -->
+<div class="row">
+  <div class="col-lg-7">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3 class="card-title">Employees per department</h3>
+      </div>
+      <div class="card-body">
+        {% if chart_labels %}
+        <div class="position-relative" style="height: 300px">
+          <canvas id="department-chart" role="img" aria-label="Bar chart of employees per department"></canvas>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">No departments yet. <a href="{% url 'Department_Create' %}">Create one</a>.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h3 class="card-title">Newest employees</h3>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for employee in latest_employees %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="{% url 'Employee_Detail' employee.id %}">{{ employee }}</a>
+          <span class="badge text-bg-secondary">{{ employee.department.name }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-secondary">No employees yet.</li>
+        {% endfor %}
+      </ul>
+      <div class="card-footer text-center">
+        <a href="{% url 'Employee_List' %}">All employees</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 3: latest posts -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h3 class="card-title">Latest blog posts</h3>
+    <div class="card-tools">
+      <a href="{% url 'Blog_Post_Create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> New Post</a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in latest_posts %}
+        <tr>
+          <td>{{ post.id }}</td>
+          <td>{{ post.title }}</td>
+          <td>{{ post.date_posted|date:"d M Y, H:i" }}</td>
+          <td class="text-end"><a href="{% url 'Blog_Post_Detail' post.id %}" class="btn btn-info btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-secondary">No posts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Data for the chart, passed safely from Django to JavaScript -->
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_values|json_script:"chart-values" }}
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js: the chart plugin AdminLTE's own dashboard uses -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const canvas = document.getElementById('department-chart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: JSON.parse(document.getElementById('chart-labels').textContent),
+        datasets: [{
+          label: 'Employees',
+          data: JSON.parse(document.getElementById('chart-values').textContent),
+          backgroundColor: '#2e86de',
+          borderRadius: 6,
+        }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+      },
+    });
+  });
+</script>
+{% endblock %}

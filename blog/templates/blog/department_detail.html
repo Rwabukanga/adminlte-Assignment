@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>{{department.name}}</title>
+  </head>
+
+  <body>
+    <h1>{{department.name}}</h1>
+
+    <table border="1">
+      <tr>
+        <th>ID</th>
+        <td>{{department.id}}</td>
+      </tr>
+      <tr>
+        <th>Name</th>
+        <td>{{department.name}}</td>
+      </tr>
+      <tr>
+        <th>Location</th>
+        <td>{{department.location}}</td>
+      </tr>
+    </table>
+
+    <h2>Employees in this department</h2>
+    <ul>
+      {% for employee in department.employees.all %}
+      <li>
+        <a href="{% url 'Employee_Detail' employee.id %}">{{employee}}</a>
+      </li>
+      {% empty %}
+      <li>None yet.</li>
+      {% endfor %}
+    </ul>
+
+    <p>
+      <a href="{% url 'Department_Update' department.id %}">Edit</a> |
+      <a href="{% url 'Department_Delete' department.id %}">Delete</a> |
+      <a href="{% url 'Department_List' %}">Back to list</a>
+    </p>
+  </body>
+</html>

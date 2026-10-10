@@ -1,0 +1,190 @@
+{% load i18n %}
+<nav class="app-header navbar navbar-expand bg-body">
+  <div class="container-fluid">
+
+    <!-- Left: sidebar toggle + quick links -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+          <i class="bi bi-list"></i>
+        </a>
+      </li>
+      <li class="nav-item d-none d-md-block">
+        <a href="{% url 'Dashboard' %}" class="nav-link">
+          <i class="bi bi-grid-1x2 me-1" aria-hidden="true"></i> Dashboard
+        </a>
+      </li>
+      <li class="nav-item d-none d-md-block">
+        <a href="{% url 'admin:index' %}" class="nav-link">
+          <i class="bi bi-gear me-1" aria-hidden="true"></i> Admin site
+        </a>
+      </li>
+    </ul>
+
+    <!-- Search: searches posts, departments and employees -->
+    <form class="navbar-search d-none d-xl-block ms-3" role="search" action="{% url 'Search' %}" method="get">
+      <label for="navbar-search-input" class="visually-hidden">Search</label>
+      <div class="navbar-search-field">
+        <input type="search" id="navbar-search-input" name="q" class="form-control"
+               placeholder="Search…" autocomplete="off" value="{{ q|default:'' }}">
+        <button class="navbar-search-submit" type="submit" aria-label="Submit search">
+          <i class="bi bi-search" aria-hidden="true"></i>
+        </button>
+      </div>
+    </form>
+
+    <!-- Right side -->
+    <ul class="navbar-nav ms-auto">
+      <!-- Search icon on small screens (opens the search page) -->
+      <li class="nav-item d-xl-none">
+        <a class="nav-link" href="{% url 'Search' %}" aria-label="Search">
+          <i class="bi bi-search" aria-hidden="true"></i>
+        </a>
+      </li>
+
+      <!-- Messages: the latest blog posts -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-label="Latest posts: {{ nav_new_posts }} this week">
+          <i class="bi bi-chat-text"></i>
+          {% if nav_new_posts %}<span class="navbar-badge badge text-bg-danger">{{ nav_new_posts }}</span>{% endif %}
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+          {% for post in nav_latest_posts %}
+          <a href="{% url 'Blog_Post_Detail' post.id %}" class="dropdown-item">
+            <div class="d-flex">
+              <div class="flex-shrink-0">
+                <span class="avatar-initials avatar-50 me-3">{{ post.title|slice:":1"|upper }}</span>
+              </div>
+              <div class="flex-grow-1">
+                <p class="dropdown-item-title">{{ post.title|truncatechars:28 }}</p>
+                <p class="fs-7">{{ post.content|truncatechars:34 }}</p>
+                <p class="fs-7 text-secondary">
+                  <i class="bi bi-clock-fill me-1"></i> {{ post.ago }}
+                </p>
+              </div>
+            </div>
+          </a>
+          <div class="dropdown-divider"></div>
+          {% empty %}
+          <span class="dropdown-item text-secondary">No posts yet.</span>
+          <div class="dropdown-divider"></div>
+          {% endfor %}
+          <a href="{% url 'Blog_Post_List' %}" class="dropdown-item dropdown-footer">See all posts</a>
+        </div>
+      </li>
+
+      <!-- Notifications: what changed recently -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-label="Notifications: {{ nav_notification_count }}">
+          <i class="bi bi-bell-fill"></i>
+          {% if nav_notification_count %}<span class="navbar-badge badge text-bg-warning">{{ nav_notification_count }}</span>{% endif %}
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+          <span class="dropdown-item dropdown-header">{{ nav_notification_count }} Notification{{ nav_notification_count|pluralize }}</span>
+          <div class="dropdown-divider"></div>
+          {% for n in nav_notifications %}
+          <a href="{{ n.url }}" class="dropdown-item">
+            <i class="bi {{ n.icon }} me-2"></i> {{ n.text }}
+            {% if n.when %}<span class="float-end text-secondary fs-7">{{ n.when }}</span>{% endif %}
+          </a>
+          <div class="dropdown-divider"></div>
+          {% endfor %}
+          <a href="{% url 'Dashboard' %}" class="dropdown-item dropdown-footer">Go to dashboard</a>
+        </div>
+      </li>
+
+      <!-- Language: switches Django's language (dates, form messages) -->
+      {% get_current_language as CURRENT_LANGUAGE %}
+      {% get_available_languages as AVAILABLE_LANGUAGES %}
+      {% get_language_info_list for AVAILABLE_LANGUAGES as LANGUAGE_LIST %}
+      <li class="nav-item dropdown">
+        <a class="nav-link" href="#" id="language-menu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Change language">
+          <i class="bi bi-translate" aria-hidden="true"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="language-menu">
+          {% for language in LANGUAGE_LIST %}
+          <li>
+            <form action="{% url 'set_language' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <input type="hidden" name="language" value="{{ language.code }}">
+              <button type="submit" class="dropdown-item {% if language.code == CURRENT_LANGUAGE %}active{% endif %}">
+                {{ language.name_local|capfirst }}{% if language.code == CURRENT_LANGUAGE %} <i class="bi bi-check-lg ms-2" aria-hidden="true"></i>{% endif %}
+              </button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+      </li>
+
+      <!-- Full screen -->
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-lte-toggle="fullscreen" aria-label="Toggle fullscreen">
+          <i data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i>
+          <i data-lte-icon="minimize" class="bi bi-fullscreen-exit d-none"></i>
+        </a>
+      </li>
+
+      <!-- Light / dark mode (handled by adminlte.js) -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" href="#" id="bd-theme" aria-label="Toggle color scheme" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-sun-fill" data-lte-theme-icon="light"></i>
+          <i class="bi bi-moon-fill d-none" data-lte-theme-icon="dark"></i>
+          <i class="bi bi-circle-half d-none" data-lte-theme-icon="auto"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme" style="--bs-dropdown-min-width: 8rem">
+          <li>
+            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+              <i class="bi bi-sun-fill me-2"></i> Light <i class="bi bi-check-lg ms-auto d-none"></i>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+              <i class="bi bi-moon-fill me-2"></i> Dark <i class="bi bi-check-lg ms-auto d-none"></i>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+              <i class="bi bi-circle-half me-2"></i> Auto <i class="bi bi-check-lg ms-auto d-none"></i>
+            </button>
+          </li>
+        </ul>
+      </li>
+
+      <!-- User menu -->
+      {% if user.is_authenticated %}
+      <li class="nav-item dropdown user-menu">
+        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+          <span class="avatar-initials user-image shadow">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>
+          <span class="d-none d-xl-inline">{{ user.get_full_name|default:user.username }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+          <li class="user-header text-bg-primary">
+            <span class="avatar-initials avatar-90 shadow">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>
+            <p>
+              {{ user.get_full_name|default:user.username }} -
+              {% if user.is_superuser %}Administrator{% elif user.is_staff %}Staff{% else %}User{% endif %}
+              <small>Member since {{ user.date_joined|date:"M. Y" }}</small>
+            </p>
+          </li>
+          <li class="user-footer">
+            {% if user.is_staff %}
+            <a href="{% url 'admin:auth_user_change' user.id %}" class="btn btn-outline-secondary">Profile</a>
+            {% endif %}
+            <form action="{% url 'admin:logout' %}" method="post" class="d-inline float-end">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger">Sign out</button>
+            </form>
+          </li>
+        </ul>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'admin:login' %}?next={{ request.get_full_path|urlencode }}">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Sign in
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>

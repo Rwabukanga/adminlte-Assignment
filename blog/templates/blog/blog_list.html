@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Blog Posts{% endblock %}
+{% block page_title %}Blog Posts{% endblock %}
+{% block breadcrumb %}Blog Posts{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-header">
+    <h3 class="card-title">All posts</h3>
+    <div class="card-tools">
+      <a href="{% url 'Blog_Post_Create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Create Post
+      </a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-bordered table-striped align-middle datatable w-100" data-empty-text="No posts yet.">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Content</th>
+          <th>Date</th>
+          <th class="no-sort">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- loop to populate all posts in the table -->
+        {% for post in posts %}
+        <tr>
+          <td>{{ post.id }}</td>
+          <td>{{ post.title }}</td>
+          <td>{{ post.content }}</td>
+          <td>{{ post.date_posted }}</td>
+          <td class="text-nowrap">
+            <a href="{% url 'Blog_Post_Detail' post.id %}" class="btn btn-info btn-sm"><i class="bi bi-eye"></i> View</a>
+            <a href="{% url 'Blog_Post_Update' post.id %}" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+            <a href="{% url 'Blog_Post_Delete' post.id %}" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Delete</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-secondary">No posts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Content</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endblock %}

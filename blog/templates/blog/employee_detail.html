@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>{{employee}}</title>
+  </head>
+
+  <body>
+    <h1>{{employee}}</h1>
+
+    <table border="1">
+      <tr>
+        <th>ID</th>
+        <td>{{employee.id}}</td>
+      </tr>
+      <tr>
+        <th>First Name</th>
+        <td>{{employee.first_name}}</td>
+      </tr>
+      <tr>
+        <th>Last Name</th>
+        <td>{{employee.last_name}}</td>
+      </tr>
+      <tr>
+        <th>Email</th>
+        <td>{{employee.email}}</td>
+      </tr>
+      <tr>
+        <th>Hire Date</th>
+        <td>{{employee.hire_date}}</td>
+      </tr>
+      <tr>
+        <th>Department</th>
+        <td>
+          <a href="{% url 'Department_Detail' employee.department.id %}"
+            >{{employee.department.name}}</a
+          >
+        </td>
+      </tr>
+    </table>
+
+    <p>
+      <a href="{% url 'Employee_Update' employee.id %}">Edit</a> |
+      <a href="{% url 'Employee_Delete' employee.id %}">Delete</a> |
+      <a href="{% url 'Employee_List' %}">Back to list</a>
+    </p>
+  </body>
+</html>

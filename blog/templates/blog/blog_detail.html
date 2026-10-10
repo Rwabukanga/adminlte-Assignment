@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>{{post.title}}</title>
+  </head>
+
+  <body>
+    <h1>{{post.title}}</h1>
+
+    <table border="1">
+      <tr>
+        <th>ID</th>
+        <td>{{post.id}}</td>
+      </tr>
+      <tr>
+        <th>Title</th>
+        <td>{{post.title}}</td>
+      </tr>
+      <tr>
+        <th>Content</th>
+        <td>{{post.content}}</td>
+      </tr>
+      <tr>
+        <th>Date</th>
+        <td>{{post.date_posted}}</td>
+      </tr>
+    </table>
+
+    <p>
+      <a href="{% url 'Blog_Post_Update' post.id %}">Edit</a> |
+      <a href="{% url 'Blog_Post_Delete' post.id %}">Delete</a> |
+      <a href="{% url 'Blog_Post_List' %}">Back to list</a>
+    </p>
+  </body>
+</html>

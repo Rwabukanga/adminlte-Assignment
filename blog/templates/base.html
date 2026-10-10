@@ -1,0 +1,435 @@
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<!doctype html>
+<html lang="{{ CURRENT_LANGUAGE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Dashboard{% endblock %} | ProjectI</title>
+
+  <!-- Light/dark mode: runs before the page draws, so dark mode doesn't flash white (from AdminLTE) -->
+  <script>
+    (() => {
+      'use strict';
+      const root = document.documentElement;
+      if (root.getAttribute('data-lte-color-mode') === 'off') {
+        return;
+      }
+      const STORAGE_KEY = 'lte-theme';
+      let stored = null;
+      try {
+        stored = localStorage.getItem(STORAGE_KEY);
+      } catch {
+        // localStorage may be unavailable (private mode).
+      }
+      const authored = root.getAttribute('data-bs-theme');
+      let resolved = 'light';
+      if (stored === 'dark' || stored === 'light') {
+        resolved = stored;
+      } else if (authored === 'dark' || authored === 'light') {
+        resolved = authored;
+      } else if (globalThis.matchMedia('(prefers-color-scheme: dark)').matches) {
+        resolved = 'dark';
+      }
+      root.setAttribute('data-bs-theme', resolved);
+      root.style.colorScheme = resolved;
+      if (resolved !== authored) {
+        root.setAttribute('data-lte-theme-resolved', '');
+      }
+    })();
+  </script>
+
+  <!-- 1. Font and icons (internet) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.3.0/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.16.0/styles/overlayscrollbars.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+  <!-- 2. DataTables (static/vendor/datatables) -->
+  <link rel="stylesheet" href="{% static 'vendor/datatables/dataTables.bootstrap5.min.css' %}">
+
+  <!-- 3. AdminLTE, once (static/adminlte = the contents of AdminLTE's dist folder) -->
+  <link rel="stylesheet" href="{% static 'E:\Masters Documentation\WebTechApiCohort7\DjangoProjectI\ProjectI\static\AdminLTE\src\html\public\css\adminlte.min.css' %}">
+
+  <!-- 4. Your own changes, last so they win (static/css/custom.css) -->
+  <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+  <link href="https://cdn.datatables.net/v/dt/dt-3.1.3/datatables.min.css" rel="stylesheet">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary" data-language="{{ CURRENT_LANGUAGE }}">
+<div class="app-wrapper">
+
+  {% include 'blog/navbar.html' %}
+  {% include 'blog/sidebar.html' %}
+
+  <main class="app-main">
+    <div class="app-content-header">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-sm-6">
+            <h1 class="mb-0 fs-3">{% block page_title %}{% endblock %}</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-end">
+              <li class="breadcrumb-item"><a href="{% url 'Dashboard' %}">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">{% block breadcrumb %}{% endblock %}</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="app-content">
+      <div class="container-fluid">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="float-end d-none d-sm-inline">Built with AdminLTE</div>
+    <strong>&copy; {% now "Y" %} ProjectI.</strong> All rights reserved.
+  </footer>
+</div>
+
+<!-- 5. Bootstrap and AdminLTE scripts, each once -->
+<script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.16.0/browser/overlayscrollbars.browser.es6.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/js/adminlte.min.js"></script>
+<script src="{% static 'E:/Masters Documentation/WebTechApiCohort7/AdminLTE-master/AdminLTE-master/dist/js/adminlte.min.js' %}"></script>
+<script>
+  // Custom scrollbar in the sidebar (from AdminLTE's index.html)
+  document.addEventListener('DOMContentLoaded', function () {
+    const sidebarWrapper = document.querySelector('.sidebar-wrapper');
+    if (sidebarWrapper && window.innerWidth > 992 && globalThis.OverlayScrollbarsGlobal?.OverlayScrollbars) {
+      OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
+        scrollbars: { theme: 'os-theme-light', autoHide: 'leave', clickScroll: true },
+      });
+    }
+  });
+</script>
+
+<!-- 6. DataTables: every <table class="datatable"> gets search, sorting and paging -->
+<script src="{% static 'vendor/datatables/dataTables.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'E:\Masters Documentation\WebTechApiCohort7\DjangoProjectI\ProjectI\static\AdminLTE\src\html\public\js/datatables-init.js' %}"></script>
+<script src="https://cdn.datatables.net/v/dt/dt-3.1.3/datatables.min.js" ></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
+
+
+
+
+
+{% comment %} {% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<!doctype html>
+<html lang="{{ CURRENT_LANGUAGE }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Dashboard{% endblock %} | ProjectI</title>
+
+    <!--begin::Theme Init (prevents flash of incorrect theme on load, #6043)-->
+    <script>
+      (() => {
+        'use strict';
+        const root = document.documentElement;
+
+        // Applications with their own theming opt out of AdminLTE's color mode
+        // entirely, here as well as in the bundle.
+        if (root.getAttribute('data-lte-color-mode') === 'off') {
+          return;
+        }
+
+        const STORAGE_KEY = 'lte-theme';
+        let stored = null;
+        try {
+          stored = localStorage.getItem(STORAGE_KEY);
+        } catch {
+          // localStorage may be unavailable (private mode, sandboxed iframe).
+        }
+        // Mirror the precedence in color-mode.ts: the visitor's stored choice
+        // wins, then a theme this page declared itself, then the OS preference.
+        const authored = root.getAttribute('data-bs-theme');
+        let resolved = 'light';
+        if (stored === 'dark' || stored === 'light') {
+          resolved = stored;
+        } else if (authored === 'dark' || authored === 'light') {
+          resolved = authored;
+        } else if (globalThis.matchMedia('(prefers-color-scheme: dark)').matches) {
+          resolved = 'dark';
+        }
+        root.setAttribute('data-bs-theme', resolved);
+        root.style.colorScheme = resolved;
+        // Flag values computed here, so the bundle does not mistake them for a
+        // theme the page declared and stop following the OS preference.
+        if (resolved !== authored) {
+          root.setAttribute('data-lte-theme-resolved', '');
+        }
+      })();
+    </script>
+    <!--end::Theme Init-->
+
+    <!-- AdminLTE plugins (from AdminLTE's dist/index.html) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.3.0/index.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.16.0/styles/overlayscrollbars.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    />
+ <!-- or bring back one piece: .d-print-flex for the header (it is a navbar),
+     .d-print-block for the sidebar and footer -->
+    <aside class="app-sidebar bg-body-secondary shadow d-print-block">…</aside>
+
+    <link
+      rel="stylesheet"
+      href="{% static 'E:\Masters Documentation\WebTechApiCohort7\DjangoProjectI\ProjectI\static\AdminLTE\src\html\public\css\adminlte.min.css' %}"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/css/adminlte.min.css">
+        <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tabulator-tables@6.6.1/dist/css/tabulator_bootstrap5.min.css"
+      crossorigin="anonymous"
+    />
+
+    
+  <!-- DataTables 3, Bootstrap 5 styling (saved in static/vendor/datatables) -->
+  <link rel="stylesheet" href="{% static 'vendor/datatables/dataTables.bootstrap5.min.css' %}">
+
+  <!-- AdminLTE (from static/adminlte) -->
+  <link rel="stylesheet" href="{% static 'adminlte/css/adminlte.min.css' %}">
+  </head>
+  <body class="layout-fixed sidebar-expand-lg bg-body-tertiary" data-language="{{ CURRENT_LANGUAGE }}">
+    <div class="app-wrapper">
+
+ {% include 'blog/navbar.html' %}
+ {% include 'blog/sidebar.html' %}
+
+      <!-- ===== Top bar ===== -->
+      <nav class="app-header navbar navbar-expand bg-body">
+        <div class="container-fluid">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                data-lte-toggle="sidebar"
+                href="#"
+                role="button"
+                aria-label="Toggle sidebar"
+              >
+                <i class="bi bi-list"></i>
+              </a>
+            </li>
+            <li class="nav-item d-none d-md-block">
+              <a href="{% url 'Dashboard' %}" class="nav-link">Home</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav ms-auto">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <span class="nav-link"
+                ><i class="bi bi-person-circle"></i> {{ user.username }}</span
+              >
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin:index' %}"
+                ><i class="bi bi-gear"></i> Admin</a
+              >
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- ===== Sidebar ===== -->
+      <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+        <div class="sidebar-brand">
+          <a href="{% url 'Blog_Post_List' %}" class="brand-link">
+            <img
+              src="{% static 'E:\Masters Documentation\WebTechApiCohort7\DjangoProjectI\ProjectI\static\AdminLTE\src\assets\img/AdminLTELogo.png' %}"
+              alt="Logo"
+              class="brand-image opacity-75 shadow"
+            />
+            <span class="brand-text fw-light">ProjectI</span>
+          </a>
+        </div>
+
+        <div class="sidebar-wrapper">
+          <nav class="mt-2" aria-label="Main navigation">
+            <ul
+              class="nav sidebar-menu flex-column"
+              data-lte-toggle="treeview"
+              data-accordion="false"
+              id="navigation"
+            >
+              {% with url_name=request.resolver_match.url_name|default:'' %}
+
+              <li class="nav-header">BLOG</li>
+              <li class="nav-item">
+                <a
+                  href="{% url 'Blog_Post_List' %}"
+                  class="nav-link {% if 'Blog_Post' in url_name and url_name != 'Blog_Post_Create' %}active{% endif %}"
+                >
+                  <i class="nav-icon bi bi-journal-text"></i>
+                  <p>All Posts</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  href="{% url 'Blog_Post_Create' %}"
+                  class="nav-link {% if url_name == 'Blog_Post_Create' %}active{% endif %}"
+                >
+                  <i class="nav-icon bi bi-plus-square"></i>
+                  <p>New Post</p>
+                </a>
+              </li>
+
+              <li class="nav-header">COMPANY</li>
+              <!-- A menu with sub-items: opens and closes when clicked -->
+              <li
+                class="nav-item {% if 'Department' in url_name %}menu-open{% endif %}"
+              >
+                <a
+                  href="#"
+                  class="nav-link {% if 'Department' in url_name %}active{% endif %}"
+                >
+                  <i class="nav-icon bi bi-building"></i>
+                  <p>
+                    Departments <i class="nav-arrow bi bi-chevron-right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    <a
+                      href="{% url 'Department_List' %}"
+                      class="nav-link {% if url_name == 'Department_List' %}active{% endif %}"
+                    >
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>All Departments</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      href="{% url 'Department_Create' %}"
+                      class="nav-link {% if url_name == 'Department_Create' %}active{% endif %}"
+                    >
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>New Department</p>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+              <li
+                class="nav-item {% if 'Employee' in url_name %}menu-open{% endif %}"
+              >
+                <a
+                  href="#"
+                  class="nav-link {% if 'Employee' in url_name %}active{% endif %}"
+                >
+                  <i class="nav-icon bi bi-people"></i>
+                  <p>Employees <i class="nav-arrow bi bi-chevron-right"></i></p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    <a
+                      href="{% url 'Employee_List' %}"
+                      class="nav-link {% if url_name == 'Employee_List' %}active{% endif %}"
+                    >
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>All Employees</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a
+                      href="{% url 'Employee_Create' %}"
+                      class="nav-link {% if url_name == 'Employee_Create' %}active{% endif %}"
+                    >
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>New Employee</p>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+
+              {% endwith %}
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- ===== Page content ===== -->
+      <main class="app-main">
+        <div class="app-content-header">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-sm-6">
+                <h1 class="mb-0 fs-3">{% block page_title %}{% endblock %}</h1>
+              </div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                  <li class="breadcrumb-item">
+                    <a href="{% url 'Dashboard' %}">Home</a>
+                  </li>
+                  <li class="breadcrumb-item active" aria-current="page">
+                    {% block breadcrumb %}{% endblock %}
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="app-content">
+          <div class="container-fluid">{% block content %}{% endblock %}</div>
+        </div>
+      </main>
+
+      <footer class="app-footer">
+        <strong>ProjectI</strong> &middot; Django + AdminLTE
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.16.0/browser/overlayscrollbars.browser.es6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@4/dist/js/adminlte.min.js"></script>
+    <script src="{% static 'adminlte/js/adminlte.min.js' %}"></script>
+    <script>
+      // Custom scrollbar in the sidebar (same as AdminLTE's index.html)
+      document.addEventListener("DOMContentLoaded", function () {
+        const sidebarWrapper = document.querySelector(".sidebar-wrapper");
+        if (
+          sidebarWrapper &&
+          window.innerWidth > 992 &&
+          globalThis.OverlayScrollbarsGlobal?.OverlayScrollbars
+        ) {
+          OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
+            scrollbars: {
+              theme: "os-theme-light",
+              autoHide: "leave",
+              clickScroll: true,
+            },
+          });
+        }
+      });
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/tabulator-tables@6.6.1/dist/js/tabulator.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DataTables: every <table class="datatable"> gets search, sorting and paging -->
+<script src="{% static 'vendor/datatables/dataTables.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'js/datatables-init.js' %}"></script>
+  </body>
+</html>
+ {% endcomment %}
