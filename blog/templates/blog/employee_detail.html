@@ -1,4 +1,161 @@
-<!doctype html>
+{% extends 'base.html' %}
+
+{% block title %}{{ employee }}{% endblock %}
+{% block page_title %}Employee Profile{% endblock %}
+{% block breadcrumb %}{{ employee }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+  <!-- ===== Left: profile card (layout from AdminLTE's pages/profile.html) ===== -->
+  <div class="col-md-4 col-xl-3">
+    <div class="card card-primary card-outline">
+      <div class="card-body text-center">
+        <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center fw-semibold mb-3"
+             style="width: 96px; height: 96px; font-size: 2rem" aria-hidden="true">
+          {{ employee.first_name|slice:":1"|upper }}{{ employee.last_name|slice:":1"|upper }}
+        </div>
+        <h3 class="h5 mb-0">{{ employee.first_name }} {{ employee.last_name }}</h3>
+        <p class="text-secondary mb-3">{{ employee.department.name }}</p>
+
+        <ul class="list-group list-group-flush text-start small">
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-secondary">Employee ID</span>
+            <span class="fw-semibold">#{{ employee.id }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-secondary">Hired</span>
+            <span class="fw-semibold">{{ employee.hire_date|date:"M d, Y" }}</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-secondary">With the company</span>
+            <span class="fw-semibold">{{ employee.hire_date|timesince }}</span>
+          </li>
+        </ul>
+
+        <a href="{% url 'Employee_Update' employee.id %}" class="btn btn-primary w-100 mt-3">
+          <i class="bi bi-pencil me-1" aria-hidden="true"></i> Edit
+        </a>
+        <a href="{% url 'Employee_Delete' employee.id %}" class="btn btn-outline-danger w-100 mt-2">
+          <i class="bi bi-trash me-1" aria-hidden="true"></i> Delete
+        </a>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="card mt-3">
+      <div class="card-header">
+        <h3 class="card-title">About</h3>
+      </div>
+      <div class="card-body small">
+        <p class="fw-semibold mb-1"><i class="bi bi-envelope me-1 text-secondary" aria-hidden="true"></i> Email</p>
+        <p class="mb-3"><a href="mailto:{{ employee.email }}">{{ employee.email }}</a></p>
+
+        <p class="fw-semibold mb-1"><i class="bi bi-building me-1 text-secondary" aria-hidden="true"></i> Department</p>
+        <p class="mb-3">
+          <a href="{% url 'Department_Detail' employee.department.id %}">{{ employee.department.name }}</a>
+        </p>
+
+        <p class="fw-semibold mb-1"><i class="bi bi-geo-alt me-1 text-secondary" aria-hidden="true"></i> Location</p>
+        <p class="text-secondary mb-0">{{ employee.department.location|default:"Not set" }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Right: details and colleagues ===== -->
+  <div class="col-md-8 col-xl-9">
+
+    <!-- Small summary boxes -->
+    <div class="row g-3">
+      <div class="col-sm-4">
+        <div class="info-box mb-0">
+          <span class="info-box-icon text-bg-primary shadow-sm"><i class="bi bi-person-badge"></i></span>
+          <div class="info-box-content">
+            <span class="info-box-text">Employee ID</span>
+            <span class="info-box-number">#{{ employee.id }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="info-box mb-0">
+          <span class="info-box-icon text-bg-success shadow-sm"><i class="bi bi-building"></i></span>
+          <div class="info-box-content">
+            <span class="info-box-text">Department</span>
+            <span class="info-box-number">{{ employee.department.name }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="info-box mb-0">
+          <span class="info-box-icon text-bg-warning shadow-sm"><i class="bi bi-calendar-check"></i></span>
+          <div class="info-box-content">
+            <span class="info-box-text">Hire date</span>
+            <span class="info-box-number">{{ employee.hire_date|date:"M d, Y" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All details -->
+    <div class="card mt-3">
+      <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-card-list me-1"></i> Details</h3>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+          <tbody>
+            <tr><th style="width: 200px">ID</th><td>{{ employee.id }}</td></tr>
+            <tr><th>First Name</th><td>{{ employee.first_name }}</td></tr>
+            <tr><th>Last Name</th><td>{{ employee.last_name }}</td></tr>
+            <tr><th>Email</th><td><a href="mailto:{{ employee.email }}">{{ employee.email }}</a></td></tr>
+            <tr><th>Hire Date</th><td>{{ employee.hire_date|date:"l, F j, Y" }}</td></tr>
+            <tr>
+              <th>Department</th>
+              <td><a href="{% url 'Department_Detail' employee.department.id %}">{{ employee.department.name }}</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Colleagues in the same department -->
+    <div class="card mt-3">
+      <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-people me-1"></i> Colleagues in {{ employee.department.name }}</h3>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for colleague in employee.department.employees.all %}
+        {% if colleague.pk != employee.pk %}
+        <li class="list-group-item d-flex align-items-center">
+          <span class="rounded-circle bg-secondary-subtle text-secondary d-inline-flex align-items-center justify-content-center fw-semibold me-3"
+                style="width: 36px; height: 36px" aria-hidden="true">{{ colleague.first_name|slice:":1"|upper }}{{ colleague.last_name|slice:":1"|upper }}</span>
+          <div class="flex-grow-1">
+            <a href="{% url 'Employee_Detail' colleague.id %}">{{ colleague }}</a>
+            <div class="small text-secondary">{{ colleague.email }}</div>
+          </div>
+          <span class="small text-secondary">since {{ colleague.hire_date|date:"M Y" }}</span>
+        </li>
+        {% endif %}
+        {% endfor %}
+        {% if employee.department.employees.count < 2 %}
+        <li class="list-group-item text-secondary">No other employees in this department yet.</li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <div class="mt-3">
+      <a href="{% url 'Employee_List' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Back to list
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+
+
+{% comment %} <!doctype html>
 <html lang="en">
   <head>
     <title>{{employee}}</title>
@@ -45,3 +202,4 @@
     </p>
   </body>
 </html>
+ {% endcomment %}

@@ -1,4 +1,97 @@
-<!doctype html>
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+{% block page_title %}Blog Post{% endblock %}
+{% block breadcrumb %}{{ post.title|truncatechars:40 }}{% endblock %}
+
+{% block content %}
+{% widthratio post.content|wordcount 200 1 as minutes %}
+<div class="row g-3">
+
+  <!-- ===== Main: the post itself ===== -->
+  <div class="col-lg-8">
+    <div class="card card-primary card-outline">
+      <div class="card-header">
+        <h2 class="h4 mb-1">{{ post.title }}</h2>
+        <div class="small text-secondary">
+          <i class="bi bi-calendar3 me-1" aria-hidden="true"></i>{{ post.date_posted|date:"F j, Y, H:i" }}
+          <span class="mx-2">&middot;</span>
+          <i class="bi bi-clock me-1" aria-hidden="true"></i>{% if minutes|add:0 < 1 %}1{% else %}{{ minutes }}{% endif %} min read
+        </div>
+      </div>
+      <div class="card-body fs-6" style="line-height: 1.7">
+        {{ post.content|linebreaks }}
+      </div>
+      <div class="card-footer d-flex flex-wrap gap-2">
+        <a href="{% url 'Blog_Post_Update' post.id %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-pencil me-1" aria-hidden="true"></i> Edit
+        </a>
+        <a href="{% url 'Blog_Post_Delete' post.id %}" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-trash me-1" aria-hidden="true"></i> Delete
+        </a>
+        <a href="{% url 'Blog_Post_List' %}" class="btn btn-outline-secondary btn-sm ms-auto">
+          <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Back to list
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Side: details and other posts ===== -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-info-circle me-1"></i> Post details</h3>
+      </div>
+      <ul class="list-group list-group-flush small">
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary">Post ID</span><span class="fw-semibold">#{{ post.id }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary">Published</span><span class="fw-semibold">{{ post.date_posted|date:"M d, Y" }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary">Age</span><span class="fw-semibold">{{ post.date_posted|timesince }} ago</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary">Words</span><span class="fw-semibold">{{ post.content|wordcount }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span class="text-secondary">Characters</span><span class="fw-semibold">{{ post.content|length }}</span>
+        </li>
+      </ul>
+    </div>
+
+    {% if nav_latest_posts %}
+    <div class="card mt-3">
+      <div class="card-header">
+        <h3 class="card-title"><i class="bi bi-journal-text me-1"></i> Latest posts</h3>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for other in nav_latest_posts %}
+        <a href="{% url 'Blog_Post_Detail' other.id %}"
+           class="list-group-item list-group-item-action d-flex align-items-center{% if other.id == post.id %} active{% endif %}">
+          <span class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center fw-semibold me-3 flex-shrink-0"
+                style="width: 36px; height: 36px" aria-hidden="true">{{ other.title|slice:":1"|upper }}</span>
+          <div class="text-truncate">
+            <div class="text-truncate">{{ other.title }}</div>
+            <div class="small {% if other.id == post.id %}text-white-50{% else %}text-secondary{% endif %}">{{ other.date_posted|date:"M d, Y" }}</div>
+          </div>
+        </a>
+        {% endfor %}
+      </ul>
+      <div class="card-footer text-center">
+        <a href="{% url 'Blog_Post_List' %}">All posts</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+
+
+
+{% comment %} <!doctype html>
 <html lang="en">
   <head>
     <title>{{post.title}}</title>
@@ -33,3 +126,4 @@
     </p>
   </body>
 </html>
+ {% endcomment %}

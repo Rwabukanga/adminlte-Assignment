@@ -53,7 +53,7 @@ def department_list(request):
 
 def department_detail(request,pk):
     department = get_object_or_404(Department, pk=pk)
-    return render(request, 'blog/department_detail.html', {department: department})
+    return render(request, 'blog/department_detail.html', {'department': department})
 
 def department_create(request):
     form = DepartmentForm(request.POST or None)
