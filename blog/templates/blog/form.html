@@ -4,6 +4,248 @@
 {% block page_title %}{{ heading }}{% endblock %}
 {% block breadcrumb %}{{ heading }}{% endblock %}
 
+{% block extra_css %}
+<style>
+  /* Step indicators, from AdminLTE's forms/wizard.html */
+  .wizard-steps { counter-reset: step; list-style: none; padding: 0; display: flex; justify-content: space-between; position: relative; }
+  .wizard-steps::before { content: ''; position: absolute; top: 1rem; left: 0; right: 0; height: 2px; background: var(--bs-border-color); z-index: 0; }
+  .wizard-steps li { position: relative; z-index: 1; background: var(--bs-body-bg); padding: 0 0.75rem; text-align: center; color: var(--bs-secondary-color); font-size: 0.875rem; }
+  .wizard-steps li::before { counter-increment: step; content: counter(step); display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; margin: 0 auto 0.5rem; border-radius: 50%; background: var(--bs-body-tertiary-bg); border: 2px solid var(--bs-border-color); color: var(--bs-secondary-color); font-weight: 600; }
+  .wizard-steps li.active { color: var(--bs-primary); font-weight: 600; }
+  .wizard-steps li.active::before { background: var(--bs-primary); border-color: var(--bs-primary); color: #fff; }
+  .wizard-steps li.completed::before { background: var(--bs-success); border-color: var(--bs-success); color: #fff; content: '\f633'; font-family: 'bootstrap-icons'; }
+  .wizard-steps li.completed, .wizard-steps li.visited { cursor: pointer; }
+  .wizard-step { border: 1px solid var(--bs-border-color); border-radius: 0.375rem; padding: 1rem 1.25rem 1.25rem; }
+  .wizard-step legend { float: none; width: auto; font-size: 1.15rem; margin-bottom: 0.75rem; }
+  #wz-summary dt { font-weight: 600; }
+  #wz-summary dd { white-space: pre-line; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% with steps=form.wizard_steps %}
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-8">
+    <div class="card">
+      <div class="card-body p-4">
+
+        <!-- Step indicators -->
+        <ol class="wizard-steps mb-4" id="wizard-steps">
+          {% if steps %}
+          {% for step in steps %}
+          <li data-step="{{ forloop.counter0 }}">{{ step.title }}</li>
+          {% endfor %}
+          {% else %}
+          <li data-step="0">Details</li>
+          {% endif %}
+          <li>Review</li>
+        </ol>
+
+        <form method="post" id="wizard-form" novalidate>
+          {% csrf_token %}
+
+          {% for error in form.non_field_errors %}
+          <div class="alert alert-danger">{{ error }}</div>
+          {% endfor %}
+
+          <!-- One fieldset per step -->
+          {% for step in steps %}
+          <fieldset class="wizard-step{% if not forloop.first %} d-none{% endif %}" data-step="{{ forloop.counter0 }}"{% if step.has_errors %} data-has-errors{% endif %}>
+            <legend>{{ step.title }}</legend>
+            <div class="row g-3">
+              {% for field in step.fields %}
+              <div class="{% if field.widget_type == 'textarea' %}col-12{% else %}col-md-6{% endif %}" data-label="{{ field.label }}">
+                <label class="form-label" for="{{ field.id_for_label }}">
+                  {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                <div class="invalid-feedback">{% for error in field.errors %}{{ error }} {% endfor %}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </fieldset>
+          {% empty %}
+          <!-- Form without steps defined: all fields in one step -->
+          <fieldset class="wizard-step" data-step="0"{% if form.errors %} data-has-errors{% endif %}>
+            <legend>Details</legend>
+            <div class="row g-3">
+              {% for field in form %}
+              <div class="{% if field.widget_type == 'textarea' %}col-12{% else %}col-md-6{% endif %}" data-label="{{ field.label }}">
+                <label class="form-label" for="{{ field.id_for_label }}">
+                  {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                <div class="invalid-feedback{% if field.errors %} d-block{% endif %}">{% for error in field.errors %}{{ error }} {% endfor %}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </fieldset>
+          {% endfor %}
+
+          <!-- Last step: review what was entered -->
+          <fieldset class="wizard-step d-none">
+            <legend>Review &amp; confirm</legend>
+            <dl class="row mb-0" id="wz-summary"></dl>
+          </fieldset>
+
+          <!-- Navigation -->
+          <div class="d-flex justify-content-between align-items-center mt-4">
+            <div>
+              <button type="button" class="btn btn-outline-secondary" id="wz-prev" disabled>
+                <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Previous
+              </button>
+              <a href="{% url cancel_url|default:'Blog_Post_List' %}" class="btn btn-link text-secondary">Cancel</a>
+            </div>
+            <div>
+              <button type="button" class="btn btn-primary" id="wz-next">
+                Next <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+              </button>
+              <button type="submit" class="btn btn-success d-none" id="wz-submit">
+                <i class="bi bi-check-lg me-1" aria-hidden="true"></i> Save
+              </button>
+            </div>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Step-by-step form: shows one fieldset at a time, checks it before moving on,
+  // and fills the Review step with what was entered.
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('wizard-form');
+    const steps = Array.from(form.querySelectorAll('.wizard-step'));
+    const dots = Array.from(document.querySelectorAll('#wizard-steps li'));
+    const prev = document.getElementById('wz-prev');
+    const next = document.getElementById('wz-next');
+    const submit = document.getElementById('wz-submit');
+    const last = steps.length - 1;
+    let current = 0;
+    let furthest = 0;
+
+    function fieldsOf(step) {
+      return Array.from(step.querySelectorAll('input, select, textarea'))
+        .filter(function (el) { return el.type !== 'hidden'; });
+    }
+
+    // Checks the fields of one step; shows the browser's message under each wrong field
+    function valid(step) {
+      let ok = true;
+      fieldsOf(step).forEach(function (el) {
+        const feedback = el.parentElement.querySelector('.invalid-feedback');
+        if (!el.validity.valid) {
+          ok = false;
+          el.classList.add('is-invalid');
+          if (feedback) feedback.textContent = el.validationMessage;
+        } else {
+          el.classList.remove('is-invalid');
+        }
+      });
+      if (!ok) {
+        const firstBad = step.querySelector('.is-invalid');
+        if (firstBad) firstBad.focus();
+      }
+      return ok;
+    }
+
+    function fillSummary() {
+      const summary = document.getElementById('wz-summary');
+      summary.innerHTML = '';
+      steps.slice(0, last).forEach(function (step) {
+        fieldsOf(step).forEach(function (el) {
+          const holder = el.closest('[data-label]');
+          let value = el.value;
+          if (el.tagName === 'SELECT') value = el.selectedIndex > 0 ? el.options[el.selectedIndex].text : '';
+          if (el.type === 'date' && el.value) value = new Date(el.value + 'T00:00').toLocaleDateString();
+          const dt = document.createElement('dt');
+          dt.className = 'col-sm-4';
+          dt.textContent = holder ? holder.dataset.label : el.name;
+          const dd = document.createElement('dd');
+          dd.className = 'col-sm-8';
+          dd.textContent = value || '—';
+          summary.append(dt, dd);
+        });
+      });
+    }
+
+    function show(index) {
+      current = index;
+      furthest = Math.max(furthest, index);
+      steps.forEach(function (step, i) { step.classList.toggle('d-none', i !== index); });
+      dots.forEach(function (dot, i) {
+        dot.classList.toggle('active', i === index);
+        dot.classList.toggle('completed', i < index);
+        dot.classList.toggle('visited', i <= furthest);
+      });
+      prev.disabled = index === 0;
+      next.classList.toggle('d-none', index === last);
+      submit.classList.toggle('d-none', index !== last);
+      if (index === last) fillSummary();
+      const firstField = fieldsOf(steps[index])[0];
+      if (firstField) firstField.focus();
+    }
+
+    next.addEventListener('click', function () {
+      if (valid(steps[current])) show(current + 1);
+    });
+    prev.addEventListener('click', function () { show(current - 1); });
+
+    // Click a step number to jump back (or forward to a step already reached)
+    dots.forEach(function (dot, i) {
+      dot.addEventListener('click', function () {
+        if (i < current || (i <= furthest && valid(steps[current]))) show(i);
+      });
+    });
+
+    // Enter in a field moves to the next step instead of saving too early
+    form.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && current < last) {
+        e.preventDefault();
+        next.click();
+      }
+    });
+
+    // Final check of every step before saving
+    form.addEventListener('submit', function (e) {
+      for (let i = 0; i < last; i++) {
+        if (!valid(steps[i])) { e.preventDefault(); show(i); valid(steps[i]); return; }
+      }
+    });
+
+    // Typing in a field clears its red error
+    form.addEventListener('input', function (e) {
+      if (e.target.classList.contains('is-invalid') && e.target.validity.valid) {
+        e.target.classList.remove('is-invalid');
+      }
+    });
+
+    // After a failed save, open the first step that has an error from the server
+    const withErrors = steps.findIndex(function (step) { return step.hasAttribute('data-has-errors'); });
+    if (withErrors > 0) furthest = steps.length - 2;
+    show(withErrors >= 0 ? withErrors : 0);
+  });
+</script>
+{% endblock %}
+
+
+
+
+
+
+{% comment %} {% extends 'base.html' %}
+
+{% block title %}{{ heading }}{% endblock %}
+{% block page_title %}{{ heading }}{% endblock %}
+{% block breadcrumb %}{{ heading }}{% endblock %}
+
 {% block content %}
 <div class="card card-primary card-outline mb-4">
   <form method="post">
@@ -18,7 +260,7 @@
     </form>
 </div>
 {% endblock %}
-
+ {% endcomment %}
 
 
 
