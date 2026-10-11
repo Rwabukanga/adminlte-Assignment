@@ -129,7 +129,7 @@ def employee_delete(request, pk):
         employee.delete()
         return redirect('Employee_List')
     context = {'heading': 'Delete Employee', 'object': employee, 'cancel_url': 'Employee_List'}
-    return render(request, 'blog/confirm_delete.html', context)
+    return render(request, 'blog/blog_confirm_delete.html', context)
 
 # ---------- Employee ----------
 
